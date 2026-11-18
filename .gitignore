@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Modelo entrenado (se regenera con: python -m src.train)
+models/*.joblib
+
+# Sistema / editores
+.DS_Store
+.vscode/
+.idea/

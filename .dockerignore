@@ -1,0 +1,14 @@
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.ipynb_checkpoints
+tests
+notebooks
+reports
+models
+Dockerfile
+README.md

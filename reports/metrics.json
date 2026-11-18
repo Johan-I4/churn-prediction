@@ -1,0 +1,26 @@
+{
+  "best_model": "Regresión logística",
+  "cost_assumptions": {
+    "value_lost": 500.0,
+    "offer_cost": 50.0,
+    "success_rate": 0.3
+  },
+  "test": {
+    "threshold": 0.34,
+    "roc_auc": 0.8468237360820482,
+    "accuracy": 0.7771469127040455,
+    "precision": 0.5619834710743802,
+    "recall": 0.7272727272727273,
+    "f1": 0.634032634032634,
+    "confusion_matrix": {
+      "tn": 823,
+      "fp": 212,
+      "fn": 102,
+      "tp": 272
+    },
+    "baseline_accuracy": 0.7345635202271115,
+    "net_benefit_model": 16600.0,
+    "net_benefit_contact_all": -14350.0,
+    "net_benefit_contact_none": 0.0
+  }
+}
