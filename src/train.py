@@ -154,14 +154,16 @@ def main(argv=None):
     test["net_benefit_contact_all"] = net_benefit(y_test, proba_test, 0.0, **cost)
     test["net_benefit_contact_none"] = 0.0
     metrics = {"best_model": best_name, "cost_assumptions": cost, "test": test}
-    (reports_dir / "metrics.json").write_text(json.dumps(metrics, indent=2, ensure_ascii=False))
+    (reports_dir / "metrics.json").write_text(
+        json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
     cm = test["confusion_matrix"]
     md = [
         "## Resultados",
         "",
         f"Datos: {len(X)} clientes, churn global {y.mean():.1%}. "
-        f"Split estratificado {int((1 - args.test_size) * 100)}/{int(args.test_size * 100)} "
+        f"Split estratificado {round((1 - args.test_size) * 100)}/{round(args.test_size * 100)} "
         f"(semilla {args.seed}).",
         "",
         f"### Validación cruzada ({args.cv_folds} folds, solo train; media ± desviación)",
@@ -191,7 +193,7 @@ def main(argv=None):
         f"| Beneficio neto: modelo vs. contactar a todos | {test['net_benefit_model']:.0f} vs. {test['net_benefit_contact_all']:.0f} |",
         "",
     ]
-    (reports_dir / "results.md").write_text("\n".join(md))
+    (reports_dir / "results.md").write_text("\n".join(md), encoding="utf-8")
 
     # 4) Guardar el pipeline completo + umbral
     bundle = {

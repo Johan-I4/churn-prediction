@@ -10,7 +10,7 @@ Retener a un cliente cuesta menos que conseguir uno nuevo. Dado el perfil de un 
 
 ## Datos
 
-[Telco Customer Churn (Kaggle)](https://www.kaggle.com/datasets/blastchar/telco-customer-churn): 7,043 clientes, 20 variables predictoras y la columna objetivo `Churn` ($\approx 26.54\%$ de abandono).
+[Telco Customer Churn (Kaggle)](https://www.kaggle.com/datasets/blastchar/telco-customer-churn): 7,043 clientes, 19 variables predictoras y la columna objetivo `Churn` ($\approx 26.54\%$ de abandono).
 
 El archivo CSV debe ubicarse en `data/WA_Fn-UseC_-Telco-Customer-Churn.csv`.
 
@@ -82,7 +82,7 @@ El modelo seleccionado fue **Regresión logística**. Dado el desbalanceo de cla
 Requiere Python 3.10 o superior.
 
 ```bash
-git clone [https://github.com/](https://github.com/)Johan-I4/churn-prediction.git
+git clone https://github.com/Johan-I4/churn-prediction.git
 cd churn-prediction
 
 python -m venv .venv
@@ -107,9 +107,9 @@ uvicorn src.api:app --reload
 Documentación interactiva disponible en <http://127.0.0.1:8000/docs>.
 
 ```bash
-curl [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+curl http://127.0.0.1:8000/health
 
-curl -X POST [http://127.0.0.1:8000/predict](http://127.0.0.1:8000/predict) \
+curl -X POST http://127.0.0.1:8000/predict \
   -H "Content-Type: application/json" \
   -d '{
     "gender": "Female", "SeniorCitizen": 0, "Partner": "Yes", "Dependents": "No",

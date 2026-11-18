@@ -1,5 +1,5 @@
 {
-  "best_model": "Regresión logística",
+  "best_model": "RegresiÃ³n logÃ­stica",
   "cost_assumptions": {
     "value_lost": 500.0,
     "offer_cost": 50.0,
