@@ -13,3 +13,6 @@ models/*.joblib
 .DS_Store
 .vscode/
 .idea/
+
+# Base de datos SQLite (se regenera con: python -m src.build_db)
+data/*.db

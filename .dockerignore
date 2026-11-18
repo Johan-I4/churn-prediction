@@ -12,3 +12,7 @@ reports
 models
 Dockerfile
 README.md
+
+# Artefactos SQLite y consultas analíticas
+data/*.db
+sql/

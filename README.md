@@ -2,11 +2,11 @@
 
 Modelo que estima la probabilidad de que un cliente de una empresa de telecomunicaciones abandone el servicio, expuesto como API REST (FastAPI) y empaquetado con Docker.
 
-**Stack:** Python · pandas · scikit-learn · FastAPI · Pydantic · Docker · pytest
+**Stack:** Python · pandas · scikit-learn · SQLite · FastAPI · Pydantic · Docker · pytest
 
 ## Problema
 
-Retener a un cliente cuesta menos que conseguir uno nuevo. Dado el perfil de un cliente (contrato, antigüedad, servicios, cargos), el modelo devuelve su **probabilidad de churn** y una decisión (`churn_prediction`: `true` / `false`) basada en un umbral calibrado por beneficio neto de negocio, en lugar del corte estándar de `0.50`.
+Retener a un cliente cuesta menos que conseguir uno nuevo. Dado el perfil de un cliente (contrato, antigüedad, servicios, cargos), el modelo devuelve su **probabilidad de churn** y una decisión (`churn_prediction`: `true` / `false`) basada en un umbral elegido por beneficio neto de negocio, en lugar del corte estándar de `0.50`.
 
 ## Datos
 
@@ -22,7 +22,7 @@ El archivo CSV debe ubicarse en `data/WA_Fn-UseC_-Telco-Customer-Churn.csv`.
 2. **Pipeline de `scikit-learn` sin *data leakage*:** recibe el DataFrame crudo y encadena ingeniería de variables $\rightarrow$ `ColumnTransformer` (`OneHotEncoder` + `StandardScaler`) $\rightarrow$ estimador, ajustándose únicamente sobre el conjunto de entrenamiento.
 3. **Variables derivadas (`src/features.py`):** número total de servicios adicionales contratados, cargo mensual relativo a la antigüedad e indicador binario de cliente nuevo ($\text{tenure} \le 6$ meses).
 4. **Validación cruzada estratificada (5 folds):** evalúa sobre las mismas particiones un baseline mayoritario (`DummyClassifier`), Regresión Logística, Random Forest y `HistGradientBoostingClassifier`, seleccionando el ganador por **ROC-AUC**.
-5. **Calibración de umbral por costos (`src/evaluate.py`):** selecciona el corte que maximiza el beneficio neto usando predicciones *out-of-fold*. Supuestos por defecto (configurables vía `python -m src.train --help`): pérdida por cliente perdido $= 500$, costo de oferta de retención $= 50$ y probabilidad de retención efectiva $= 0.30$.
+5. **Elección de umbral por costos (`src/evaluate.py`):** selecciona el corte que maximiza el beneficio neto usando predicciones *out-of-fold*. Supuestos por defecto (configurables vía `python -m src.train --help`): pérdida por cliente perdido $= 500$, costo de oferta de retención $= 50$ y probabilidad de retención efectiva $= 0.30$.
 6. **Implementación desde cero (`src/logreg_scratch.py`):** Regresión Logística vectorizada en NumPy entrenada mediante descenso de gradiente, validada contra `scikit-learn`.
 
 ## Resultados
@@ -51,15 +51,19 @@ El modelo seleccionado fue **Regresión logística**. Dado el desbalanceo de cla
 
 **Matriz de confusión e impacto económico en Test ($n = 1{,}409$):**
 * **Desglose:** $\text{TP} = 272$, $\text{FP} = 212$, $\text{FN} = 102$, $\text{TN} = 823$.
-* **Beneficio neto del modelo:** **+$16,600.0** (frente a **-$14,350.0** al contactar a todos los clientes y **$0.0** al no contactar a ninguno).
+* **Beneficio neto del modelo:** **+USD 16,600** (frente a **−USD 14,350** al contactar a todos los clientes y **USD 0** al no contactar a ninguno).
 
 ![Curva precision-recall](reports/precision_recall.png)
 
 ## Estructura del proyecto
 
 ```text
-├── data/                    # Dataset crudo (CSV)
+├── data/                    # Dataset crudo (CSV) y base SQLite local (churn.db)
 ├── notebooks/01_eda.ipynb   # Análisis exploratorio con pandas
+├── sql/                     # Esquema SQLite y 12 consultas analíticas
+│   ├── README.md            # Diagrama de tablas y guía de las consultas
+│   ├── schema.sql           # DDL normalizado (clientes, servicios, facturacion)
+│   └── queries/             # 12 consultas comentadas (JOIN, HAVING, CTE, ventanas)
 ├── src/
 │   ├── data.py              # Carga y limpieza de esquema
 │   ├── features.py          # Variables derivadas
@@ -68,8 +72,10 @@ El modelo seleccionado fue **Regresión logística**. Dado el desbalanceo de cla
 │   ├── train.py             # Entrenamiento CV, evaluación y serialización (.joblib)
 │   ├── logreg_scratch.py    # Regresión logística vectorizada en NumPy
 │   ├── schemas.py           # Contratos de entrada/salida (Pydantic v2)
-│   └── api.py               # Servicio REST con FastAPI
-├── tests/                   # Suite de pruebas unitarias y de API (pytest)
+│   ├── api.py               # Servicio REST con FastAPI
+│   ├── build_db.py          # Crea la base SQLite desde el CSV
+│   └── run_queries.py       # Ejecuta las consultas de sql/queries/
+├── tests/                   # Suite de pruebas unitarias, API y SQL (pytest)
 ├── reports/                 # Métricas (JSON/CSV), curvas PR y resumen generado
 ├── Dockerfile               # Imagen de producción (python:3.11-slim)
 ├── .dockerignore            # Exclusión de entorno local, pruebas y artefactos
@@ -148,6 +154,24 @@ pytest -v
 python -m src.logreg_scratch
 ```
 
+## Base de datos SQLite y consultas SQL
+
+El CSV se carga en SQLite y se divide en 3 tablas (`clientes`, `servicios`, `facturacion`). La carpeta [`sql/`](sql/) contiene el esquema y 12 consultas comentadas que usan `JOIN`, `HAVING`, CTE y funciones de ventana. Las pruebas comparan los resultados de SQL contra pandas.
+
+```bash
+python -m src.build_db      # crea data/churn.db
+python -m src.run_queries   # ejecuta las 12 consultas
+```
+
+Hallazgos que salen de las consultas:
+
+- **El contrato mes a mes con fibra óptica** tiene un churn de **54.61 %**, unas 2.06 veces el promedio global (26.54 %).
+- **Más de la mitad de las bajas (55.5 %)** ocurre durante el primer año de antigüedad.
+- **El pago con cheque electrónico** es el método con más churn en los tres tipos de contrato (53.73 % en mes a mes).
+- **Los clientes mes a mes** concentran el **46.97 %** de su ingreso mensual en cuentas que se dieron de baja.
+
+Más detalle y el diagrama de las tablas en [`sql/README.md`](sql/README.md).
+
 ## Limitaciones
 
 - Dataset público estático; en un entorno productivo requiere monitoreo continuo de *data drift* y reentrenamiento periódico.
@@ -160,3 +184,7 @@ python -m src.logreg_scratch
 - Búsqueda acotada de hiperparámetros (`RandomizedSearchCV`).
 - Explicabilidad global y local mediante valores SHAP y análisis de errores por segmento.
 - Registro de experimentos con MLflow e integración continua (CI) con GitHub Actions.
+
+## Licencia
+
+El código de este repositorio se distribuye bajo licencia MIT (ver [`LICENSE`](LICENSE)). El dataset pertenece a IBM y se distribuye en Kaggle bajo sus propios términos.
