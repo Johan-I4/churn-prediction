@@ -21,5 +21,5 @@ def test_train_end_to_end_on_synthetic_data(synthetic_csv, tmp_path):
     bundle = joblib.load(models_dir / "churn_pipeline.joblib")
     assert 0.05 <= bundle["threshold"] <= 0.95
     assert 0.5 < metrics["test"]["roc_auc"] <= 1.0
-    saved = json.loads((reports_dir / "metrics.json").read_text())
+    saved = json.loads((reports_dir / "metrics.json").read_text(encoding="utf-8"))
     assert saved["best_model"] == bundle["model_name"]
