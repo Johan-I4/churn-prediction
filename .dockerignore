@@ -1,3 +1,4 @@
+# Control de versiones y entorno local
 .git
 .gitignore
 .venv
@@ -6,6 +7,12 @@ __pycache__
 *.pyc
 .pytest_cache
 .ipynb_checkpoints
+
+# Credenciales: nunca deben entrar a la imagen
+.env
+.env.*
+
+# Pruebas, notebooks y artefactos que no necesita la API
 tests
 notebooks
 reports
@@ -13,6 +20,6 @@ models
 Dockerfile
 README.md
 
-# Artefactos SQLite y consultas analíticas
+# Artefactos SQLite y consultas analÃ­ticas
 data/*.db
 sql/

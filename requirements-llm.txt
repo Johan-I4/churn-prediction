@@ -1,0 +1,3 @@
+# Opcional: solo para el backend LLM_BACKEND=anthropic
+-r requirements.txt
+anthropic
