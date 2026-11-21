@@ -69,3 +69,22 @@ class PredictionResponse(BaseModel):
     churn_probability: float = Field(ge=0, le=1)
     churn_prediction: bool
     threshold: float
+
+
+class FactorOut(BaseModel):
+    feature: str
+    label: str
+    value: str
+    contribution: float = Field(description="Contribución al log-odds (positiva = aumenta el riesgo)")
+    effect: Literal["aumenta", "reduce"]
+
+
+class ExplainResponse(PredictionResponse):
+    factors_up: list[FactorOut]
+    factors_down: list[FactorOut]
+    context_sources: list[str] = Field(description="Fragmentos recuperados por el RAG (archivo#título)")
+    explanation: str
+    backend: str = Field(description="Backend que redactó el texto: template o anthropic")
+    fallback_reason: str | None = Field(
+        default=None, description="Si el backend pedido falló, por qué se usó template"
+    )
