@@ -185,6 +185,16 @@ Más detalle y el diagrama de las tablas en [`sql/README.md`](sql/README.md).
 - Explicabilidad global y local mediante valores SHAP y análisis de errores por segmento.
 - Registro de experimentos con MLflow e integración continua (CI) con GitHub Actions.
 
+## Explicaciones con RAG y LLM opcional
+
+`POST /explain` devuelve la predicción, los factores que más suben y bajan el riesgo del cliente y un texto en lenguaje de negocio.
+
+- **Factores exactos:** en regresión logística, `logit = intercepto + Σ coeficiente × valor`. Cada término es la contribución de una variable (`src/explain.py`). Una prueba verifica que la suma reproduce `predict_proba`. No son valores SHAP.
+- **RAG mínimo:** `src/rag/` parte `docs/knowledge/*.md` por encabezados y recupera los 3 fragmentos más parecidos con TF-IDF (scikit-learn). No usa embeddings.
+- **Texto:** por defecto, plantilla determinista (`LLM_BACKEND=template`, sin red). Hay un backend opcional con la API de Anthropic (`prompts/explicar_churn.md` con rol, contexto, objetivo, formato y restricciones); si falla, la API cae a la plantilla.
+- **Credenciales:** solo por variables de entorno; `.env` está en `.gitignore` y `.dockerignore`.
+- **Limitación:** las contribuciones son asociaciones del modelo, no causas, y variables correlacionadas (cargo mensual, cargo total, antigüedad) pueden dar signos contraintuitivos al leerse por separado.
+
 ## Licencia
 
 El código de este repositorio se distribuye bajo licencia MIT (ver [`LICENSE`](LICENSE)). El dataset pertenece a IBM y se distribuye en Kaggle bajo sus propios términos.
