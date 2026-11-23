@@ -23,3 +23,6 @@ README.md
 # Artefactos SQLite y consultas analíticas
 data/*.db
 sql/
+
+# Dashboard de Power BI (no forma parte de la API)
+powerbi/

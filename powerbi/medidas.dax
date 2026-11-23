@@ -1,0 +1,124 @@
+// =====================================================================================
+// Medidas DAX del mini dashboard de churn (Power BI Desktop).
+// Tablas: clientes (1 fila por cliente) y resumen_modelo (1 fila, métricas del TEST).
+// Crea cada medida en la tabla `clientes`: Inicio > Nueva medida, pega UN bloque a la vez.
+// El formato (no se puede fijar desde este archivo) va en el comentario "Formato:".
+// Estas medidas NO se ejecutaron en Power BI al escribirse: comprueba cada una con la lista
+// de verificación de powerbi/README.md antes de confiar en ella.
+// =====================================================================================
+
+
+// ---------------------------------------------------------------- 1. Tarjetas principales
+// Descriptivas (dato real de los 7,043 clientes): no dependen del modelo, no hay leakage.
+
+// Formato: Número entero, separador de miles
+Clientes = COUNTROWS ( clientes )
+
+// Formato: Número entero, separador de miles
+Clientes con churn =
+CALCULATE ( COUNTROWS ( clientes ), clientes[churn] = 1 )
+
+// Formato: Porcentaje, 2 decimales
+Churn % =
+DIVIDE ( [Clientes con churn], [Clientes] )
+
+// Formato: Número decimal, 2 decimales, separador de miles (el dataset no declara moneda)
+Ingreso mensual en bajas =
+CALCULATE ( SUM ( clientes[MonthlyCharges] ), clientes[churn] = 1 )
+
+// Formato: Número decimal, 2 decimales, separador de miles
+Ingreso mensual total =
+SUM ( clientes[MonthlyCharges] )
+
+// Formato: Porcentaje, 2 decimales
+% ingreso mensual en bajas =
+DIVIDE ( [Ingreso mensual en bajas], [Ingreso mensual total] )
+
+
+// ---------------------------------------------------------------- 2. Referencia global
+// Ignora los segmentadores: sirve para comparar un segmento contra el promedio.
+
+// Formato: Porcentaje, 2 decimales
+Churn global % =
+CALCULATE ( [Churn %], ALL ( clientes ) )
+
+
+// ---------------------------------------------------------------- 3. Riesgo (modelo)
+// Úsalo con clientes[risk_level] en el eje (ordenado por risk_order).
+// OJO: las probabilidades de las filas split = train son "in-sample" (el modelo las vio al
+// entrenar). Sirven para priorizar a quién contactar, NO para medir desempeño.
+
+// Formato: Porcentaje, 1 decimal
+% de clientes por nivel =
+DIVIDE (
+    [Clientes],
+    CALCULATE ( [Clientes], ALLSELECTED ( clientes[risk_level] ) )
+)
+
+// Clientes que el modelo marca como churn (probabilidad >= umbral = niveles Alto y Muy alto).
+// Formato: Número entero, separador de miles
+Clientes marcados por el modelo =
+CALCULATE ( [Clientes], clientes[predicted_churn] = 1 )
+
+// Formato: Número decimal, 2 decimales
+Umbral del modelo =
+MAX ( resumen_modelo[threshold] )
+
+
+// ---------------------------------------------------------------- 4. Desempeño del modelo (SOLO TEST)
+// Tarjetas del dashboard: leen metrics.json a través de resumen_modelo. No cambian con los
+// segmentadores (resumen_modelo no está relacionada con clientes) y nunca usan filas de train.
+
+// Formato: Número decimal, 4 decimales
+AUC (test) =
+MAX ( resumen_modelo[test_roc_auc] )
+
+// Formato: Porcentaje, 2 decimales
+Precision (test) =
+MAX ( resumen_modelo[test_precision] )
+
+// Formato: Porcentaje, 2 decimales
+Recall (test) =
+MAX ( resumen_modelo[test_recall] )
+
+// Formato: Número entero, separador de miles
+Clientes en test =
+MAX ( resumen_modelo[n_test] )
+
+
+// ---------------------------------------------------------------- 5. Medidas de verificación
+// No van en el dashboard. Recalculan precision y recall filtrando split = "test" para
+// comprobar que coinciden con metrics.json. Se ven en una tabla (visual "Tarjeta de varias
+// filas" o "Tabla") sin segmentadores activos.
+
+// Formato: Porcentaje, 2 decimales
+Precision (test, recalculada) =
+VAR PrediccionesPositivas =
+    CALCULATE ( COUNTROWS ( clientes ), clientes[split] = "test", clientes[predicted_churn] = 1 )
+VAR AciertosPositivos =
+    CALCULATE (
+        COUNTROWS ( clientes ),
+        clientes[split] = "test",
+        clientes[predicted_churn] = 1,
+        clientes[churn] = 1
+    )
+RETURN
+    DIVIDE ( AciertosPositivos, PrediccionesPositivas )
+
+// Formato: Porcentaje, 2 decimales
+Recall (test, recalculada) =
+VAR BajasReales =
+    CALCULATE ( COUNTROWS ( clientes ), clientes[split] = "test", clientes[churn] = 1 )
+VAR AciertosPositivos =
+    CALCULATE (
+        COUNTROWS ( clientes ),
+        clientes[split] = "test",
+        clientes[predicted_churn] = 1,
+        clientes[churn] = 1
+    )
+RETURN
+    DIVIDE ( AciertosPositivos, BajasReales )
+
+// Formato: Número entero, separador de miles
+Clientes test (recalculado) =
+CALCULATE ( COUNTROWS ( clientes ), clientes[split] = "test" )

@@ -9,6 +9,11 @@ venv/
 # Modelo entrenado (se regenera con: python -m src.train)
 models/*.joblib
 
+# Power BI: CSV generados (se regeneran con: python -m src.export_dashboard_data) y caché local
+powerbi/data/*.csv
+**/.pbi/cache.abf
+**/.pbi/localSettings.json
+
 # Sistema / editores
 .DS_Store
 .vscode/
