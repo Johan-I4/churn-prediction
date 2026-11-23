@@ -73,9 +73,14 @@ El modelo seleccionado fue **Regresión logística**. Dado el desbalanceo de cla
 │   ├── logreg_scratch.py    # Regresión logística vectorizada en NumPy
 │   ├── schemas.py           # Contratos de entrada/salida (Pydantic v2)
 │   ├── api.py               # Servicio REST con FastAPI
+│   ├── export_dashboard_data.py  # Exporta los CSV (UTF-8) para Power BI
 │   ├── build_db.py          # Crea la base SQLite desde el CSV
 │   └── run_queries.py       # Ejecuta las consultas de sql/queries/
-├── tests/                   # Suite de pruebas unitarias, API y SQL (pytest)
+├── powerbi/                 # Mini dashboard de Power BI (guía, medidas DAX, Power Query)
+│   ├── README.md            # Modelo de datos, pasos, diseño y lista de verificación
+│   ├── medidas.dax          # Medidas DAX
+│   └── consultas.m          # Power Query (M)
+├── tests/                   # Suite de pruebas unitarias, API, SQL y exportación (pytest)
 ├── reports/                 # Métricas (JSON/CSV), curvas PR y resumen generado
 ├── Dockerfile               # Imagen de producción (python:3.11-slim)
 ├── .dockerignore            # Exclusión de entorno local, pruebas y artefactos
@@ -171,6 +176,18 @@ Hallazgos que salen de las consultas:
 - **Los clientes mes a mes** concentran el **46.97 %** de su ingreso mensual en cuentas que se dieron de baja.
 
 Más detalle y el diagrama de las tablas en [`sql/README.md`](sql/README.md).
+
+## Dashboard en Power BI
+
+Mini dashboard de una página (tarjetas de clientes, churn e ingreso en bajas; churn por contrato, antigüedad y método de pago; distribución por nivel de riesgo). Los datos los genera un script probado con `pytest`:
+
+```bash
+python -m src.export_dashboard_data   # crea powerbi/data/clientes.csv y resumen_modelo.csv
+```
+
+- **Sin leakage:** cada cliente lleva `split` (`train`/`test`) con la misma partición de `src/train.py`. AUC, precision y recall salen solo del test (`reports/metrics.json`); el script los recalcula con `split = test` y se detiene si no coinciden.
+- **Cifras coherentes con este README:** pruebas con los datos reales comprueban 7,043 clientes, churn de 26.54 % y los porcentajes por segmento (se omiten si falta el modelo entrenado).
+- Guía, modelo de datos, medidas DAX y lista de verificación en [`powerbi/`](powerbi/). Las medidas DAX y el Power Query no se ejecutan en CI: se validan a mano con esa lista.
 
 ## Limitaciones
 
