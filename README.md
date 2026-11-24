@@ -2,7 +2,7 @@
 
 Modelo que estima la probabilidad de que un cliente de una empresa de telecomunicaciones abandone el servicio, expuesto como API REST (FastAPI) y empaquetado con Docker.
 
-**Stack:** Python · pandas · scikit-learn · SQLite · FastAPI · Pydantic · Docker · pytest
+**Stack:** Python · pandas · scikit-learn · SQLite · FastAPI · Pydantic · RAG (TF-IDF) · Power BI · Docker · pytest
 
 ## Problema
 
@@ -64,6 +64,8 @@ El modelo seleccionado fue **Regresión logística**. Dado el desbalanceo de cla
 │   ├── README.md            # Diagrama de tablas y guía de las consultas
 │   ├── schema.sql           # DDL normalizado (clientes, servicios, facturacion)
 │   └── queries/             # 12 consultas comentadas (JOIN, HAVING, CTE, ventanas)
+├── docs/knowledge/          # Base de conocimiento Markdown para RAG (/explain)
+├── prompts/                 # Plantillas de prompts para explicación con LLM
 ├── src/
 │   ├── data.py              # Carga y limpieza de esquema
 │   ├── features.py          # Variables derivadas
@@ -72,20 +74,27 @@ El modelo seleccionado fue **Regresión logística**. Dado el desbalanceo de cla
 │   ├── train.py             # Entrenamiento CV, evaluación y serialización (.joblib)
 │   ├── logreg_scratch.py    # Regresión logística vectorizada en NumPy
 │   ├── schemas.py           # Contratos de entrada/salida (Pydantic v2)
-│   ├── api.py               # Servicio REST con FastAPI
+│   ├── api.py               # Servicio REST con FastAPI (/health, /predict, /explain)
+│   ├── explain.py           # Contribuciones por cliente y generación de explicaciones
+│   ├── llm_client.py        # Cliente LLM opcional para redactar explicaciones
+│   ├── prompts.py           # Carga y renderizado de plantillas de prompts
+│   ├── rag/                 # Recuperación léxica TF-IDF sobre docs/knowledge/
 │   ├── export_dashboard_data.py  # Exporta los CSV (UTF-8) para Power BI
 │   ├── build_db.py          # Crea la base SQLite desde el CSV
 │   └── run_queries.py       # Ejecuta las consultas de sql/queries/
 ├── powerbi/                 # Mini dashboard de Power BI (guía, medidas DAX, Power Query)
 │   ├── README.md            # Modelo de datos, pasos, diseño y lista de verificación
 │   ├── medidas.dax          # Medidas DAX
-│   └── consultas.m          # Power Query (M)
+│   ├── consultas.m          # Power Query (M)
+│   ├── captura_dashboard.png # Captura del dashboard validado
+│   └── churn_dashboard.pbix # Archivo de Power BI Desktop
 ├── tests/                   # Suite de pruebas unitarias, API, SQL y exportación (pytest)
 ├── reports/                 # Métricas (JSON/CSV), curvas PR y resumen generado
 ├── Dockerfile               # Imagen de producción (python:3.11-slim)
 ├── .dockerignore            # Exclusión de entorno local, pruebas y artefactos
 ├── requirements.txt         # Dependencias mínimas de producción
-└── requirements-dev.txt     # Dependencias de desarrollo, pruebas y notebooks
+├── requirements-dev.txt     # Dependencias de desarrollo, pruebas y notebooks
+└── requirements-llm.txt     # Dependencias opcionales para backend LLM
 ```
 
 ## Cómo ejecutarlo
