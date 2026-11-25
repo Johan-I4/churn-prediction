@@ -2,14 +2,14 @@
 
 Una página sobre el proyecto de churn: cuánto se pierde, dónde se concentra y a quién conviene contactar primero. Los datos salen de un script del repo (`src/export_dashboard_data.py`), probado con `pytest`; el dashboard solo los muestra.
 
-## Qué está comprobado y qué no
+## Estado de validación (2026-11-24)
 
 | Parte | Estado |
 |---|---|
-| Script de exportación y sus 23 pruebas (`tests/test_export_dashboard_data.py`) | Ejecutado: pasan |
-| Cifras de los CSV contra el README (7,043 clientes, 26.54 %, segmentos) | Verificado con pandas y con pruebas |
-| Medidas DAX (`medidas.dax`) y Power Query (`consultas.m`) | **Escritas, no ejecutadas en Power BI.** Se validan con la lista de abajo |
-| Cómo se ve el dashboard, colores, legibilidad | **No comprobado.** Depende de tu captura (`captura_dashboard.png`) |
+| Script de exportación y sus 23 pruebas (`tests/test_export_dashboard_data.py`) | Comprobado (2026-11-24): 23/23 pasan |
+| Cifras de los CSV contra el README (7,043 clientes, 26.54 %, segmentos) | Comprobado (2026-11-24) con pandas, pytest y Power BI |
+| Medidas DAX (`medidas.dax`) y Power Query (`consultas.m`) | Comprobado (2026-11-24) en Power BI Desktop (`churn_dashboard.pbix`) |
+| Cómo se ve el dashboard, colores, legibilidad y archivo `.pbix` (451 KB) | Comprobado (2026-11-24): publicado en `captura_dashboard.png` y `churn_dashboard.pbix` |
 
 ## Archivos
 
@@ -18,8 +18,8 @@ powerbi/
 ├── README.md                 # esta guía
 ├── medidas.dax               # medidas DAX completas
 ├── consultas.m               # Power Query (M) de las 2 tablas
-├── captura_dashboard.png     # la tomas tú (ver paso 7)
-├── churn_dashboard.pbix      # opcional, solo si pesa poco (ver "PBIX o PBIP")
+├── captura_dashboard.png     # captura validada del dashboard (1280 × 720)
+├── churn_dashboard.pbix      # archivo de Power BI Desktop (451 KB)
 └── data/                     # CSV generados (no se suben a GitHub)
     ├── clientes.csv
     └── resumen_modelo.csv
@@ -128,29 +128,29 @@ Guarda como `powerbi\churn_dashboard.pbix`. Con la página abierta: Archivo > Ex
 
 ## Lista de verificación contra el README
 
-Sin segmentadores activos. Marca cada fila cuando coincida.
+Comprobado en Power BI Desktop el 2026-11-24 (filas 1–6, 10 y 12 visibles en `captura_dashboard.png`; filas 7–9, 11 y 13 validadas con segmentadores y tabla auxiliar de verificación).
 
-| # | Dónde mirar | Debe salir | Origen de la cifra |
-|---|---|---|---|
-| 1 | Tarjeta `[Clientes]` | 7,043 | README |
-| 2 | Tarjeta `[Churn %]` | 26.54 % | README |
-| 3 | Tarjeta `[Ingreso mensual en bajas]` | 139,130.85 | CSV (suma de `MonthlyCharges` con churn = 1) |
-| 4 | Churn % por `Contract` | Month-to-month 42.71 %, One year 11.27 %, Two year 2.83 % | SQL 02 |
-| 5 | Churn % por `tenure_range` | 52.94 %, 35.89 %, 28.71 %, 20.39 %, 9.51 % (en ese orden) | SQL 03 |
-| 6 | Churn % por `PaymentMethod` | Electronic check 45.29 % (el más alto), Mailed check 19.11 %, Bank transfer 16.71 %, Credit card 15.24 % | CSV (el README solo dice que el cheque electrónico es el más alto) |
-| 7 | Segmentador `Contract` = Month-to-month, medida `[% ingreso mensual en bajas]` | 46.97 % | README |
-| 8 | Contract = Month-to-month + InternetService = Fiber optic, `[Churn %]` | 54.61 % | README |
-| 9 | Contract = Month-to-month, gráfica por `PaymentMethod`: Electronic check | 53.73 % | README |
-| 10 | Tarjetas de test | AUC 0.8468, Precision 56.20 %, Recall 72.73 %, `[Clientes en test]` 1,409 | README y `metrics.json` |
-| 11 | Tabla con `[Precision (test, recalculada)]`, `[Recall (test, recalculada)]`, `[Clientes test (recalculado)]` | 56.20 %, 72.73 %, 1,409 (iguales a la fila 10) | Recalculo con `split = test` |
-| 12 | Gráfica de riesgo | Bajo 3,351 · Medio 1,324 · Alto 1,744 · Muy alto 624 (suman 7,043) | Mi modelo reentrenado; el tuyo puede diferir en pocos clientes si usas otra versión de scikit-learn |
-| 13 | `[Clientes marcados por el modelo]` | 2,368 (= Alto + Muy alto) | Idem fila 12 |
+| # | Dónde mirar | Debe salir | Origen de la cifra | Estado |
+|---|---|---|---|---|
+| 1 | Tarjeta `[Clientes]` | 7,043 | README | [x] Comprobado |
+| 2 | Tarjeta `[Churn %]` | 26.54 % | README | [x] Comprobado |
+| 3 | Tarjeta `[Ingreso mensual en bajas]` | 139,130.85 | CSV (suma de `MonthlyCharges` con churn = 1) | [x] Comprobado |
+| 4 | Churn % por `Contract` | Month-to-month 42.71 %, One year 11.27 %, Two year 2.83 % | SQL 02 | [x] Comprobado |
+| 5 | Churn % por `tenure_range` | 52.94 %, 35.89 %, 28.71 %, 20.39 %, 9.51 % (en ese orden) | SQL 03 | [x] Comprobado |
+| 6 | Churn % por `PaymentMethod` | Electronic check 45.29 % (el más alto), Mailed check 19.11 %, Bank transfer 16.71 %, Credit card 15.24 % | CSV (el README solo dice que el cheque electrónico es el más alto) | [x] Comprobado |
+| 7 | Segmentador `Contract` = Month-to-month, medida `[% ingreso mensual en bajas]` | 46.97 % | README | [x] Comprobado |
+| 8 | Contract = Month-to-month + InternetService = Fiber optic, `[Churn %]` | 54.61 % | README | [x] Comprobado |
+| 9 | Contract = Month-to-month, gráfica por `PaymentMethod`: Electronic check | 53.73 % | README | [x] Comprobado |
+| 10 | Tarjetas de test | AUC 0.8468, Precision 56.20 %, Recall 72.73 %, `[Clientes en test]` 1,409 | README y `metrics.json` | [x] Comprobado |
+| 11 | Tabla con `[Precision (test, recalculada)]`, `[Recall (test, recalculada)]`, `[Clientes test (recalculado)]` | 56.20 %, 72.73 %, 1,409 (iguales a la fila 10) | Recalculo con `split = test` | [x] Comprobado |
+| 12 | Gráfica de riesgo | Bajo 3,351 · Medio 1,324 · Alto 1,744 · Muy alto 624 (suman 7,043) | Modelo entrenado (`random_state=42`) | [x] Comprobado |
+| 13 | `[Clientes marcados por el modelo]` | 2,368 (= Alto + Muy alto) | Idem fila 12 | [x] Comprobado |
 
 Si la fila 10 y la 11 no coinciden, el dashboard está mezclando filas de train: revisa que las medidas usen `split = "test"`.
 
 ## ¿PBIX o PBIP?
 
-- **`.pbix`**: un solo archivo binario que incluye los datos. Con 7,043 filas debería pesar poco (no lo medí; confírmalo). Súbelo solo si queda en pocos MB y acepta que cada guardado es un binario nuevo en el historial de Git.
+- **`.pbix`**: un solo archivo binario que incluye los datos. Con 7,043 filas pesa **451 KB** (ya medido y versionado en este repositorio). Súbelo solo si queda en pocos MB y acepta que cada guardado es un binario nuevo en el historial de Git.
 - **PBIP (proyecto de Power BI)**: carpeta de texto (modelo semántico y reporte como archivos), pensada para Git: los cambios se ven en un diff y las revisiones son legibles. Archivo > Guardar como > Proyecto de Power BI (*Power BI Project*); puede requerir activar su función en Opciones > Características en vista previa (*Preview features*) según tu versión. Conviene si vas a seguir editando el dashboard.
 - **Recomendación**: para un portafolio, el `.pbix` pequeño más la captura PNG es lo más simple. Si prefieres revisar cambios con Git, usa PBIP.
 - **Lo que no pude verificar**: si PBIP es hoy estable o sigue en vista previa (la documentación de Microsoft que consulté no lo indica), qué versión exacta de Power BI Desktop lo requiere, y cómo se comporta con tu ruta `RutaDatos`. Lo que sí dice esa documentación: Power BI Desktop crea un `.gitignore` con `**/.pbi/localSettings.json` y `**/.pbi/cache.abf` (ya están en el `.gitignore` del repo), usa CRLF (configura `git config core.autocrlf true`), no se puede guardar en OneDrive/SharePoint y en Windows conviene una ruta corta (límite de 260 caracteres).
